@@ -1,7 +1,7 @@
 # Eagal
-
-Calvo Rodrigo<br/>
-Noseda Maximiliano<br/>
-Corleto Lucia<br/>
-Garcia Diego<br/>
-Martinez Julian<br/>
+<br/>
+-Calvo Rodrigo<br/><br/>
+-Noseda Maximiliano<br/><br/>
+-Corleto Lucia<br/><br/>
+-Garcia Diego<br/><br/>
+-Martinez Julian<br/>
