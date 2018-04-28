@@ -1,4 +1,7 @@
 // This #include statement was automatically added by the Particle IDE.
+#include <PietteTech_DHT.h>
+
+// This #include statement was automatically added by the Particle IDE.
 #include <Adafruit_DHT.h>
 
 // This #include statement was automatically added by the Particle IDE.
@@ -11,11 +14,11 @@
 
 DHT dht(DHTPIN, DHTTYPE);
 
-int photoresistor = A0;
+int pFotoresistor = A0;
 
-int power = A5; 
+int fFotoresistor = A5; 
 
-int analogvalue; 
+int vFotoresistor; 
 String nivel_luz;
 String nivel_luz_anterior;
 
@@ -23,26 +26,37 @@ uint32_t freemem;
 
 String hora;
 String fecha;
+String fecha_anterior;
 
-// Next we go into the setup function.
+// AREA DE TIMERS
+
+Timer tFechaHora(1000, actualizarFechaHora);
+Timer tTemperaturaHumedad(30000, actualizarTemperaturaHumedad);
+
+// FIN AREA DE TIMERS
 
 void setup() {
     
-    Particle.variable("hora", hora);
-    Particle.variable("fotoresistor", analogvalue);
+    Particle.variable("fotoresistor", vFotoresistor);
     Particle.variable("nivel-luz", nivel_luz);
     Particle.variable("memoria", freemem);
 
     Time.zone(-3);
 
     Serial1.begin(9600);
+    
     dht.begin();
 
-    pinMode(photoresistor,INPUT);  
-    pinMode(power,OUTPUT);
-
+    pinMode(pFotoresistor,INPUT);  
+    pinMode(fFotoresistor,OUTPUT);
     
-    digitalWrite(power,HIGH);
+    digitalWrite(fFotoresistor,HIGH);
+    
+    actualizarFechaHora();
+    actualizarTemperaturaHumedad();
+    // ACTIVACION DE TIMERS
+    tFechaHora.start();
+    tTemperaturaHumedad.start();
 
 }
 
@@ -51,32 +65,39 @@ void setup() {
 
 void loop() {
 
-    analogvalue = analogRead(photoresistor);
+
+
+}
+
+void actualizarFechaHora(){
+    time_t timenow = Time.now();
+    String aux = Time.format(timenow, "%H:%M:%S");
+    Pantalla::setTexto("reloj", aux);
+    aux = Time.format(timenow, "%d-%m-%Y");
+    if (!aux.equals(fecha_anterior)){ // evitar mandar la fecha cada segundo
+        Pantalla::setTexto("calendario",aux);
+        fecha_anterior = aux;
+    }
     
-    nivel_luz = String((int)((((float)analogvalue/4096)*100)/2 + 50));
-    
+    vFotoresistor = analogRead(pFotoresistor);
+    nivel_luz = String((int)((((float)vFotoresistor/4096)*100)/2 + 50));
     if (!nivel_luz.equals(nivel_luz_anterior)){
         Pantalla::setBrillo(nivel_luz);
         nivel_luz_anterior = nivel_luz;
     }
-
-    time_t timenow = Time.now();
-    hora = Time.format(timenow, "%H:%M:%S");
-    fecha = Time.format(timenow, "%d-%m-%Y");
-    
-    Pantalla::setTexto("calendario",fecha);
-    Pantalla::setTexto("reloj", hora);
-    Pantalla::setTexto("temperatura", String((int)dht.getTempCelcius()));
-    Pantalla::setTexto("humedad", String((int)dht.getHumidity()));
-    freemem = System.freeMemory();
-
-    
-
-    delay(1000);
     
 }
 
-void actualizarSegundos(){
-    String hora = Time.format(Time.now(), "%H:%M:%S");
-    
+void actualizarTemperaturaHumedad(){
+    float aux = dht.getTempCelcius();
+    if (!isnan(aux)){
+        Particle.publish(String("Temperatura actualizada ")+aux);
+        Pantalla::setTexto("temperatura", String((int)aux));
+        Pantalla::setTexto("humedad", String((int)dht.getHumidity()));
+    } else {
+        Particle.publish("Temperatura no pudo ser leida");
+    }
+    freemem = System.freeMemory(); // actualiza la memoria disponible -- eliminar despues
 }
+
+
