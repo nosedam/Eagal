@@ -17,10 +17,19 @@ void Pantalla::enviarComando(const String comando){
     Serial1.write(0xff);
     Serial1.write(0xff);
 }
+
+void Pantalla::refrescarImagen(const String imagen){
+    enviarComando("ref "+imagen);
+}
+
+void Pantalla::cambiarPagina(const String valor){
+    enviarComando("page "+valor);
+}
+
 void Pantalla::setTexto(const String objeto, const String valor){
     enviarComando(objeto+".txt=", valor);
 }
 
-void Pantalla::setBrillo(String valor){
+void Pantalla::setBrillo(const String valor){
     enviarComando("dim="+valor);
 }

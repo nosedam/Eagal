@@ -17,14 +17,17 @@ int fFotoresistor = A5;
 
 int vFotoresistor; 
 
+int pBoton = D6;
+
 String nivel_luz;
 String nivel_luz_anterior;
 
-int estado = 0;
+volatile int estado = 0;
 
 uint32_t freemem;
 
 String hora;
+String horaAlarma = "03:13";
 String fecha;
 String fecha_anterior;
 
@@ -32,59 +35,149 @@ String fecha_anterior;
 
 Timer tFechaHora(1000, actualizarFechaHora);
 Timer tTemperaturaHumedad(30000, actualizarTemperaturaHumedad);
-Timer tAlarma(700, alarma);
-
-int cont = 0;
+Timer tPronostico(3600000, obtenerPronostico);
 
 // FIN AREA DE TIMERS
 
 void setup() {
     
+    Pantalla::cambiarPagina("1");
+    
     Particle.variable("fotoresistor", vFotoresistor);
     Particle.variable("nivel-luz", nivel_luz);
     Particle.variable("memoria", freemem);
-    Particle.variable("cont", cont);
+    
+    Particle.subscribe("hook-response/pronostico", actualizarPronostico, MY_DEVICES);
+    
+    Particle.function("setAlarma", setAlarma);
 
     Time.zone(-3);
 
     Serial1.begin(9600);
-    
-    //dht.begin(); -- Adafruit DHT
 
     pinMode(pFotoresistor,INPUT);  
     pinMode(fFotoresistor,OUTPUT);
+    pinMode(pBoton, INPUT);
     
     digitalWrite(fFotoresistor,HIGH);
     
     actualizarFechaHora();
-    //actualizarTemperaturaHumedad();
-    alarma();
-    // ACTIVACION DE TIMERS
+    actualizarTemperaturaHumedad();
+    obtenerPronostico();
+
     tFechaHora.start();
     tTemperaturaHumedad.start();
-    tAlarma.start();
+    tPronostico.start();
 
+    attachInterrupt(pBoton, interrupcionBotonAlarma, FALLING);
 }
 
-
-
-
 void loop() {
+    
+    switch (estado) {
+        case 0:
+            estadoEspera();
+            break;
+        case 1:
+            estadoAlarma();
+            break;
+        case 2:
+            estadoDurmiendo();
+            break;
+    }
+    
+}
 
+void estadoEspera(){
+    if (horaAlarma.equals(Time.format(Time.now(), "%H:%M"))){
+        estado = 1;
+        return;
+    }
+    delay(1000);
+}
+
+void actualizarPronostico(const char *event, const char *data){
+    // temp - min - max - estado
+    String str = String(data);
+    char buffer[100];
+    str.toCharArray(buffer, 100);
+    char *token = strtok(buffer, "-");
+    Pantalla::setTexto("pclima.d1t", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d1tmi", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d1tma", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d1estado", token);
+    Pantalla::refrescarImagen("pclima.d1"+String(token));
+    
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d2t", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d2tmi", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d2tma", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d2estado", token);
+    Pantalla::refrescarImagen("pclima.d2"+String(token));
+    
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d3t", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d3tmi", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d3tma", token);
+    token = strtok(NULL, "-");
+    Pantalla::setTexto("pclima.d3estado", token);
+    Pantalla::refrescarImagen("pclima.d3"+String(token));
+    
+}
+
+void obtenerPronostico(){
+    Particle.publish("pronostico");
+}
+
+void estadoAlarma(){
+    Particle.publish("ALARMA ACTIVADA");
+    delay(3000);
+    //Canciones.siguienteNota();
+}
+
+void estadoDurmiendo(){
+    if (!horaAlarma.equals(Time.format(Time.now(), "%H:%M"))){
+        estado = 0;
+    }
+    delay(1000);
+}
+
+void interrupcionBotonAlarma(){
+    estado = 2;
+}
+
+int setAlarma(String a){
+    horaAlarma = a;
+    estado = 0;
+    return 1;
 }
 
 void actualizarFechaHora(){
     time_t timenow = Time.now();
     String aux = Time.format(timenow, "%H:%M:%S");
-    Pantalla::setTexto("reloj", aux);
+    Pantalla::setTexto("preloj.reloj", aux);
     aux = Time.format(timenow, "%d/%m/%Y");
     if (!aux.equals(fecha_anterior)){ // evitar mandar la fecha cada segundo
-        Pantalla::setTexto("calendario",aux);
+        Pantalla::setTexto("preloj.calendario",aux);
         fecha_anterior = aux;
     }
     
     vFotoresistor = analogRead(pFotoresistor);
-    nivel_luz = String((int)((((float)vFotoresistor/4096)*100)/2 + 50));
+    //nivel_luz = String((int)((((float)vFotoresistor/4096)*100)/2 + 50));
+    
+    int aux_luz = (int)(((float)vFotoresistor/1024)*100) + 5;
+    if (aux_luz > 100) {
+        aux_luz = 100;
+    }
+    nivel_luz = String(aux_luz);
     if (!nivel_luz.equals(nivel_luz_anterior)){
         Pantalla::setBrillo(nivel_luz);
         nivel_luz_anterior = nivel_luz;
@@ -94,13 +187,12 @@ void actualizarFechaHora(){
 
 void actualizarTemperaturaHumedad(){
     int respuesta = dht.acquireAndWait(1000);   
-    tAlarma.stop();
     freemem = System.freeMemory(); // actualiza la memoria disponible -- eliminar despues
     switch (respuesta) {
         case DHTLIB_OK:
             Particle.publish(String("Temperatura actualizada"));
-            Pantalla::setTexto("temperatura", String((int)dht.getCelsius()));
-            Pantalla::setTexto("humedad", String((int)dht.getHumidity()));
+            Pantalla::setTexto("preloj.temperatura", String((int)dht.getCelsius()));
+            Pantalla::setTexto("preloj.humedad", String((int)dht.getHumidity()));
             break;
         case DHTLIB_ERROR_CHECKSUM:
             Particle.publish(String("CHECKSUM"));
@@ -129,6 +221,4 @@ void actualizarTemperaturaHumedad(){
     }
 }
 
-void alarma(){
-    cont++;
-}
+
