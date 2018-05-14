@@ -1,0 +1,3 @@
+rootProject.name = 'Eagal'
+
+include ':app'
