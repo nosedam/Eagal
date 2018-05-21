@@ -12,6 +12,8 @@ import {
   View
 } from 'react-native';
 
+import Alarma from './Alarma';
+
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
     'Cmd+D or shake for dev menu',
@@ -20,22 +22,28 @@ const instructions = Platform.select({
 });
 
 type Props = {};
+
+
+
+
 export default class App extends Component<Props> {
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
+      <View style={{flex: 1}}>
+        <View style={{flex: 1, backgroundColor: 'powderblue'}}>
+          <Text style={styles.welcome}>Eagal</Text>
+        </View>
+        <View style={{flex: 2, backgroundColor: 'skyblue'}}>
+          <Alarma></Alarma>
+        </View>
+        <View style={{flex: 3, backgroundColor: 'steelblue'}} />
       </View>
     );
   }
+}
+
+class Input extends Component{
+  
 }
 
 const styles = StyleSheet.create({
@@ -49,6 +57,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: 'center',
     margin: 10,
+    color: "#000"
+    
   },
   instructions: {
     textAlign: 'center',
