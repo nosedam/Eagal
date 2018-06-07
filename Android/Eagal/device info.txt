@@ -1,0 +1,33 @@
+https://docs.particle.io/reference/api/#get-a-variable-value
+Access Token: 19b2e3af727c4ad7b245755bce7fadb84ac44d74
+
+Device ID: 300037000347353137323334
+
+Ejemplo: $ curl "https://api.particle.io/v1/devices/0123456789abcdef01234567/temperature?access_token=1234
+
+https://api.particle.io/v1/devices/300037000347353137323334/setAlarma
+	access_token=501162deee64544dea1f8a2c41930694e9dabd05
+	d="22 30"
+
+curl "https://api.particle.io/v1/devices/300037000347353137323334/temperatura?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74"
+
+
+
+username=federan+particle@fastmail.com"        -
+password=pM1A8Gj789x9"
+federan+part
+
+Variables: 
+	temperatura		
+	humedad		
+	hora
+	Alarma
+
+Funciones:
+	setAlarma
+	setCancion
+	setBrillo
+	setUbicacion
+	toggleBrillo
+Todas reciben un string con el valor.
+Para usar las funciones esta mas abajo del ejemplo de las variables en el link ese
