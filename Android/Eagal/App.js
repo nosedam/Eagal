@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import Alarma from './Alarma';
+import Temperatura from './Temperatura';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -30,13 +31,16 @@ export default class App extends Component<Props> {
   render() {
     return (
       <View style={{flex: 1}}>
-        <View style={{flex: 1, backgroundColor: 'powderblue'}}>
+        <View style={{flex: 0.5, backgroundColor: 'powderblue',borderBottomColor:'black',borderBottomWidth:1}}>
           <Text style={styles.welcome}>Eagal</Text>
         </View>
-        <View style={{flex: 2, backgroundColor: 'skyblue'}}>
-          <Alarma></Alarma>
+        <View style={{flex: 4, backgroundColor: 'skyblue'}}>
+          <Alarma/>
+          <Temperatura/>
         </View>
-        <View style={{flex: 3, backgroundColor: 'steelblue'}} />
+        <View style={{flex: 0.5, backgroundColor: 'steelblue', justifyContent: 'center'}}>
+          <Text style={styles.footer}>S.O.A - 2018</Text>        
+        </View>
       </View>
     );
   }
@@ -54,15 +58,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   welcome: {
-    fontSize: 20,
+    fontSize: 50,
     textAlign: 'center',
-    margin: 10,
-    color: "#000"
-    
+    margin: 5,
+    color: "steelblue",
   },
-  instructions: {
-    textAlign: 'center',
+  footer: {
     color: '#333333',
-    marginBottom: 5,
+    textAlign: 'center'
   },
 });

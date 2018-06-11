@@ -12,8 +12,9 @@ export default class Alarma extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      valor: "22 30",
-      respuesta: ""
+      textoAlarma: "22:30",
+      respuestaParticle: "",
+      valorAlarma: "2230"
     };
   }
 
@@ -27,7 +28,7 @@ export default class Alarma extends Component {
       });
 
       if (action == TimePickerAndroid.timeSetAction) {
-        this.setState({ valor: hour + ' ' + minute});
+        this.setState({ textoAlarma: hour + ' : ' + minute, valorAlarma:hour.toString()+minute.toString()});
         this.setAlarmaAsync();
       }
     } catch ({ code, message }) {
@@ -38,7 +39,9 @@ export default class Alarma extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text>{this.state.valor}</Text>
+        <View style={styles.containerAlarma}>
+          <Text style={styles.textAlarma}>{this.state.textoAlarma}</Text>
+        </View>
         <TouchableOpacity style={styles.button} onPress={this.timePicker}>
           <Text>Configurar alarma</Text>
         </TouchableOpacity>
@@ -56,7 +59,7 @@ export default class Alarma extends Component {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        arg: this.state.valor.replace(' ','')
+        arg: this.state.valorAlarma
       })      
     })
     .then((response) => response.json())
@@ -74,18 +77,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 10
+    paddingHorizontal: 100
   },
   button: {
     alignItems: "center",
-    backgroundColor: "#DDDDDD",
-    padding: 10
+    backgroundColor: "honeydew",
+    padding: 10,
+    marginTop:15
   },
-  countContainer: {
+
+  containerAlarma: {
+
+    justifyContent: "center",
     alignItems: "center",
-    padding: 10
+    flexDirection: "row",
+
   },
-  countText: {
-    color: "#FF00FF"
+  textAlarma: {
+    fontSize: 60,
+    textAlign: 'center',
+    borderColor: "black",
+    borderStyle: "solid",
+    borderRadius: 10,
+    borderWidth: 1,
+    width:160
   }
 });
