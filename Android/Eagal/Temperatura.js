@@ -12,10 +12,18 @@ export default class Temperatura extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      textoTemp: "15ºC",
+      textoTemp: "1ºC",
       respuestaParticle: "",
       cargandoTemp: false
     };
+
+    setInterval(() => {
+      this.loadTemperaturaAsync();
+    }, 60000);
+  }
+
+  componentWillMount(){
+    this.loadTemperaturaAsync();
   }
 
   render() {
@@ -36,7 +44,7 @@ export default class Temperatura extends Component {
 
   loadTemperaturaAsync= async () =>  {
     this.setState({ cargandoTemp: true});
-    /*fetch('https://api.particle.io/v1/devices/300037000347353137323334/temperatura?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
+    fetch('https://api.particle.io/v1/devices/300037000347353137323334/temperatura?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'GET',
       headers: {
         Accept: 'application/json'
@@ -44,12 +52,11 @@ export default class Temperatura extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      this.setState({ textoTemp: JSON.stringify(responseJson.return_value)});
+      this.setState({ textoTemp: responseJson.result + '°C', cargandoTemp: false});
     })
     .catch((error) => {
       console.error(error);
-    });*/
-    this.setState({textoTemp:"20ºC", cargandoTemp: false});
+    });
   }
 
 }

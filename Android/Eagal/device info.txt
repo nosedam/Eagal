@@ -22,6 +22,11 @@ Variables:
 	humedad		
 	hora
 	Alarma
+	estado -- si esta sonando
+		0  -- esperando la hora
+		1  -- sonando
+		2  -- durmiendo
+	activa -- si va a sonar o no
 
 Funciones:
 	setAlarma
@@ -29,5 +34,6 @@ Funciones:
 	setBrillo
 	setUbicacion
 	toggleBrillo
+	apagarAlarma
 Todas reciben un string con el valor.
 Para usar las funciones esta mas abajo del ejemplo de las variables en el link ese
