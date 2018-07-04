@@ -1,3 +1,6 @@
+// This #include statement was automatically added by the Particle IDE.
+#include "Audio.h"
+
 #include <PietteTech_DHT.h>
 #include "Pantalla.h"
 
@@ -14,6 +17,9 @@ int vFotoresistor; // GLOBAL CON EL VALOR LEIDO EN EL PIN A0
 
 int pBoton = D6; // PIN DE BOTON DE INTERRUPCION - DETECTA FLANCO DE BAJADA
 
+int temp = -1;
+int hum = -1;
+
 String nivel_luz; // GLOBAL PARA EL NIVEL DE LUZ DE PANTALLA
 String nivel_luz_anterior; // GLOBAL PARA EL NIVEL DE LUZ ANTERIOR (PARA NO ENVIAR DATOS INNECESARIOS A LA PANTALLA)
 
@@ -22,25 +28,34 @@ volatile int estado = 0; // GLOBAL DEL ESTADO DE LA MAQUINA DE ESTADOS.
 uint32_t freemem; // GLOBAL DE MEMORIA DISPONIBLE
 
 String hora; // GLOBAL DE HORA ACTUAL
-String horaAlarma = "03:13"; // GLOBAL DE HORA DE ALARMA
+String horaAlarma = "00:00"; // GLOBAL DE HORA DE ALARMA
 String fecha; // GLOBAL DE FECHA ACTUAL
 String fecha_anterior; // GLOBAL DE FECHA ANTERIOR EN EL LOOP (PARA NO ENVIAR DATOS INNECESARIOS A LA PANTALLA)
+bool alarmaActiva = true;
+bool sonando = false;
 
 // AREA DE TIMERS
-
 Timer tFechaHora(500, actualizarFechaHora); // TIMER QUE ACTUALIZA LA FECHA Y LA HORA CADA 500 ms
 Timer tTemperaturaHumedad(30000, actualizarTemperaturaHumedad);
 Timer tPronostico(3600000, obtenerPronostico);
 Timer tNivelLuz(1000, actualizarNivelLuz);
-
 // FIN AREA DE TIMERS
+
+Audio buzzer(D0);
+
+String ubicacion = "Buenos Aires";
+
+bool brilloLDR = true;
 
 void setup() {
     
     // VARIBALES REGISTRADAS RESTFUL
-    Particle.variable("fotoresistor", vFotoresistor);
-    Particle.variable("nivel-luz", nivel_luz);
-    Particle.variable("memoria", freemem);
+    Particle.variable("temperatura", temp); // Temperatura del sensor
+    Particle.variable("humedad", hum); // Humedad del sensor
+    //Particle.variable("memoria", freemem); // Memoria libre
+    Particle.variable("horaalarma", horaAlarma); // Hora que suena la alarma (Formato HH:MM 24H)
+    Particle.variable("alarmaActiva", alarmaActiva);  // True: La alarma suena a la hora configurada. False: La alarma no suena a la hora configurada
+    Particle.variable("sonando", sonando, BOOL); // True: La alarma esta sonando. False: La alarma no esta sonando.
     //
     
     // EVENTOS SUSCRIPTOS DE WEBHOOK PARA OBTENER DATOS DE LOS WEBSERVICES
@@ -48,7 +63,13 @@ void setup() {
     Particle.subscribe("hook-response/cotizacion", actualizarCotizacion, MY_DEVICES);
     
     // FUNCIONES DISPONIBLES RESTFUL
-    Particle.function("setAlarma", setAlarma);
+    Particle.function("setAlarma", setAlarma); // Cambiar hora de alarma. Formato HH:MM 24H.
+    Particle.function("setCancion", setCancion); // Cambiar canción de alarma. Valores [0-3].
+    Particle.function("setBrillo", setBrillo); // Cambiar brillo de la pantalla. Valores [0-100].
+    Particle.function("setUbicacion", setUbicacion); // Cambiar ubicación para el webservice de pronosticos. Valores: String para hacer query de búsqueda.
+    Particle.function("toggleBrillo", toggleBrillo); // Enviarle 0 para que la pantalla controle el brillo con el LDR. Enviarle 1 para utilizar el brillo enviado por el webservice.
+    Particle.function("apagarAlarma", apagarAlarma); // Llamar con cualquier argumento para apagar alarma.
+    Particle.function("toggleAlarma", toggleAlarma); // Enviarle 1 para Activar la alarma y que suene a la hora indicada (alarmaActiva). Enviarle 0 para Desactivar la alarma y que no suene a la hora indicada.
     //
     
     Time.zone(-3); // HUSO HORARIO PARA RTC INTERNO
@@ -159,7 +180,7 @@ void actualizarCotizacion(const char *event, const char *data){
 
 // EFUNCION QUE PIDE AL WEBSERVICE PEDIR LOS DATOS DEL PRONONOSTICO
 void obtenerPronostico(){
-    Particle.publish("pronostico", "Buenos Aires");
+    Particle.publish("pronostico", ubicacion);
 }
 
 // EFUNCION QUE PIDE AL WEBSERVICE PEDIR LOS DATOS DE COTIZACAION. SON 3 LLAMADAS PORQUE LA VERSION GRATUITA SOLO PERMITE 1 COTIZACION POR PEDIDO.
@@ -171,32 +192,43 @@ void obtenerCotizacion(){
 
 void estadoEspera(){ // ESTADO 0 - VERIFICA SI LA HORA ACTUAL ES LA HORA DE ALARMA
     if (horaAlarma.equals(Time.format(Time.now(), "%H:%M"))){
-        estado = 1;
+        if (alarmaActiva){
+            estado = 1;
+            sonando = true;
+        }
         return;
     }
     delay(1000);
 }
 
 void estadoAlarma(){ // ESTADO 1 - LA ALARMA SUENA Y TOCA LA CANCION.
-    tone(D0, 440, 100);
-    delay(1000);
-    //Canciones.siguienteNota(); <- ESTA ES LA PROXIMA IMPLEMENTACION
+    buzzer.siguienteNota();
 }
 
 void estadoDurmiendo(){ // ESTADO 2 - LA ALARMA DUERME HASTA QUE LA HORA ES DISTINTA A LA DE LA ALARMA (PARA QUE NO SUENE DE VUELTA).
     if (!horaAlarma.equals(Time.format(Time.now(), "%H:%M"))){
+        buzzer.reiniciar();
         estado = 0;
+        sonando = false;
     }
     delay(1000);
 }
 
 void interrupcionBotonAlarma(){ // RUTINA DE INTERRUPCION QUE EJECUTA AL PRESIONAR EL BOTON PARA PARAR ALARMA.
     estado = 2;
+    sonando = false;
 }
 
 int setAlarma(String a){ // CAMBIA LA HORA DE ALARMA
     horaAlarma = a;
+    buzzer.reiniciar();
     estado = 0;
+    sonando = false;
+    return 1;
+}
+
+int setCancion(String c){
+    if (estado == 0 || estado == 2) buzzer.setCancion(c.toInt());
     return 1;
 }
 
@@ -214,19 +246,24 @@ void actualizarFechaHora(){
 
 // FUNCION QUE ACTUALIZA EL NIVEL DE LUZ DE LA PANTALLA SEGUN EL VALOR DEL LDR
 void actualizarNivelLuz(){
-    
-    vFotoresistor = analogRead(pFotoresistor);
-    //nivel_luz = String((int)((((float)vFotoresistor/4096)*100)/2 + 50));
-    
-    int aux_luz = (int)(((float)vFotoresistor/1024)*100) + 5;
-    if (aux_luz > 100) {
-        aux_luz = 100;
-    }
-    nivel_luz = String(aux_luz);
-    if (!nivel_luz.equals(nivel_luz_anterior)){
+    freemem = System.freeMemory(); // actualiza la memoria disponible -- eliminar despues
+    if (brilloLDR){
+        vFotoresistor = analogRead(pFotoresistor);
+        //nivel_luz = String((int)((((float)vFotoresistor/4096)*100)/2 + 50));
+        
+        int aux_luz = (int)(((float)vFotoresistor/1024)*100) + 5;
+        if (aux_luz > 100) {
+            aux_luz = 100;
+        }
+        nivel_luz = String(aux_luz);
+        if (!nivel_luz.equals(nivel_luz_anterior)){
+            Pantalla::setBrillo(nivel_luz);
+            nivel_luz_anterior = nivel_luz;
+        }
+    } else {
         Pantalla::setBrillo(nivel_luz);
-        nivel_luz_anterior = nivel_luz;
     }
+    
 }
 
 /* 
@@ -234,12 +271,12 @@ FUNCION QUE ACTUALIZA LOS VALORES DE TEMPERATURA Y HUMEDAD EN LA PANTALLA EN BAS
 */
 void actualizarTemperaturaHumedad(){
     int respuesta = dht.acquireAndWait(1000);   
-    freemem = System.freeMemory(); // actualiza la memoria disponible -- eliminar despues
     switch (respuesta) {
         case DHTLIB_OK:
-            //Particle.publish(String("Temperatura actualizada"));
-            Pantalla::setTexto("preloj.temperatura", String((int)dht.getCelsius()));
-            Pantalla::setTexto("preloj.humedad", String((int)dht.getHumidity()));
+            temp = (int)dht.getCelsius();
+            hum = (int)dht.getHumidity();
+            Pantalla::setTexto("preloj.temperatura", String(temp));
+            Pantalla::setTexto("preloj.humedad", String(hum));
             break;
         case DHTLIB_ERROR_CHECKSUM:
             Particle.publish(String("CHECKSUM"));
@@ -268,4 +305,31 @@ void actualizarTemperaturaHumedad(){
     }
 }
 
+int setBrillo(String valor){
+    nivel_luz = valor;
+    return 1;
+}
 
+int toggleBrillo(String tog){
+    brilloLDR = tog.equals("1");
+    return 1;
+}
+
+int setUbicacion(String ub){
+    ubicacion = ub;
+    obtenerPronostico();
+    return 1;
+}
+
+int apagarAlarma(String a){
+    interrupcionBotonAlarma();
+    return 1;
+}
+
+int toggleAlarma(String a){
+    if (a.equals("1")){
+        alarmaActiva = true;
+    } else {
+        alarmaActiva = false;
+    }
+}

@@ -1,0 +1,1 @@
+Este directorio contiene los archivos de las fuentes utilizadas en la pantalla para dibujar las letras.
