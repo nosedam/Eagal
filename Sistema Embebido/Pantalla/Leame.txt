@@ -1,0 +1,7 @@
+- Archivo Eagal.HMI
+Contiene el proyecto que se puede abrir con el software oficial de la pantalla: "Nextion Editor".
+Contiene el código usado por la pantalla y la interfaz, junto con las imágenes utilizadas y las variables.
+
+- Archivo Eagal.TFT
+Corresponde al firmware de la pantalla.
+Se copia el firmware en una SD y luego se la inserta a la pantalla. Al encenderla instalará el firmware automáticamente.
