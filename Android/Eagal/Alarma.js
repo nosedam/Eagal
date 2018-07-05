@@ -21,8 +21,12 @@ export default class Alarma extends Component {
       hora: 22,
       miuntos: 30,
       alarmaActiva: true,
-      sonando = false
+      sonando: false
     };
+
+    setInterval(() => {
+      this.loadAlarmaSonandoAsync();
+    }, 5000);
   }
 
   timePicker = async () => {
@@ -31,7 +35,7 @@ export default class Alarma extends Component {
         hour: this.state.hora,
         minute: this.state.minutos,
         is24Hour: true, // Will display '2 PM'
-        mode: "spinner"
+        mode: "clock"
       });
 
       if (action == TimePickerAndroid.timeSetAction) {
@@ -60,7 +64,7 @@ export default class Alarma extends Component {
         <View style={styles.containerAlarma}>
           <ActivityIndicator size="large" color="#0000ff" animating={this.state.cargandoAlarma}/>
           {!this.state.cargandoAlarma && 
-            <Text style={[styles.textAlarma, !this.state.alarmaActiva && styles.alarmaDesactivada]}>
+            <Text style={[styles.textAlarma, !this.state.alarmaActiva && styles.alarmaDesactivada, this.state.sonando && styles.alarmaSonando]}>
               {this.state.horaAlarma}
             </Text> 
           }
@@ -133,7 +137,7 @@ export default class Alarma extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      this.setState({ alarmaActiva: responseJson.result });
+      this.setState({ alarmaActiva: responseJson.result == 1 });
     })
     .catch((error) => {
       console.error(error);
@@ -141,6 +145,8 @@ export default class Alarma extends Component {
   }
 
   loadAlarmaSonandoAsync= async () =>  {
+    if (this.state.sonando) return;
+
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/sonando?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'GET',
       headers: {
@@ -149,7 +155,7 @@ export default class Alarma extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      this.setState({ sonando: responseJson.result });
+      this.setState({ sonando: responseJson.result == 1 });
     })
     .catch((error) => {
       console.error(error);
@@ -160,7 +166,9 @@ export default class Alarma extends Component {
   toggleAlarmaAsync = async () =>  {
 
     this.setState({ cargandoAlarma: true}); 
-
+    var boolActiva = !this.state.alarmaActiva;
+    var toggle = boolActiva ? "1" : "0";
+    console.warn(intToggle);
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/toggleAlarma?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'POST',
       headers: {
@@ -168,11 +176,11 @@ export default class Alarma extends Component {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        arg: this.state.alarmaActiva ? 1 : 0
+        arg: toggle
       })      
     })
     .then((responseJson) => {
-      this.setState({cargandoAlarma: false, alarmaActiva: this.state.alarmaActiva ? 0 : 1});
+      this.setState({cargandoAlarma: false, alarmaActiva: boolActiva});
       ToastAndroid.show("Alarma configurada correctamente" , ToastAndroid.SHORT);      
     })
     .catch((error) => {
@@ -193,11 +201,11 @@ export default class Alarma extends Component {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        arg: 'off'
+        arg: 0
       })      
     })
     .then((responseJson) => {
-      this.setState({cargandoAlarma: false, alarmaActiva: this.state.alarmaActiva ? 0 : 1});
+      this.setState({cargandoAlarma: false, sonando: false});
       ToastAndroid.show("Alarma detenida correctamente" , ToastAndroid.SHORT);      
     })
     .catch((error) => {
@@ -244,5 +252,8 @@ const styles = StyleSheet.create({
   },
   alarmaDesactivada: {
     backgroundColor: "lightgrey"
+  },
+  alarmaSonando: {
+    color: "red"
   }
 });
