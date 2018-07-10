@@ -32,7 +32,7 @@ export default class Temperatura extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.containerTemp} >
-          <ActivityIndicator size="large" color="#0000ff" animating={this.state.cargandoTemp}/>
+          <ActivityIndicator size="large"  color="steelblue" animating={this.state.cargandoTemp}/>
           { !this.state.cargandoTemp && <Text style={styles.textTemp}>{this.state.textoTemp}</Text> }
         </View>
         <TouchableOpacity style={styles.button} onPress={this.loadTemperaturaAsync}>
@@ -65,19 +65,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 100
+    paddingHorizontal: 100,
+    borderBottomColor:'grey',
+    borderBottomWidth:0.3,
+    paddingBottom:5,
   },
   button: {
     alignItems: "center",
     backgroundColor: "honeydew",
-    padding: 10,
-    marginTop:15
+    padding: 5,
+    marginTop:8
   },
 
   containerTemp: {
     justifyContent: "center",
     alignItems: "center",
-
+    marginTop: 0
   },
   textTemp: {
     borderColor: "black",

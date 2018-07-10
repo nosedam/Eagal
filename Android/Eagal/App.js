@@ -19,18 +19,18 @@ export default class App extends Component<Props> {
   render() {
     return (
       <View style={{flex: 1}}>
-        <View style={{flex: 0.5, backgroundColor: 'powderblue',borderBottomColor:'black',borderBottomWidth:1}}>
+        <View style={{flex: 0.45, backgroundColor: 'powderblue',borderBottomColor:'black',borderBottomWidth:1}}>
           <Text style={styles.welcome}>Eagal</Text>
         </View>
-        <View style={{flex: 4, backgroundColor: 'skyblue'}}>
+        <View style={{flex: 4, backgroundColor: 'skyblue', paddingTop: 3}}>
           <Alarma/>
           <Temperatura/>
           <Humedad/>
-          <Ubicacion/>
           <Brillo/>
         </View>
-        <View style={{flex: 0.5, backgroundColor: 'steelblue', justifyContent: 'center'}}>
-          <Text style={styles.footer}>S.O.A - 2018</Text>        
+        <View style={{flex: 0.5, backgroundColor: 'steelblue', justifyContent: 'center', height: 10,borderTopColor:'black',borderTopWidth:1}}>
+          <Text style={styles.footer}>S.O.A - 2018</Text>      
+          <Ubicacion/>  
         </View>
       </View>
     );
@@ -49,9 +49,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   welcome: {
-    fontSize: 50,
+    fontSize: 45,
     textAlign: 'center',
-    margin: 5,
+    margin: 1,
     color: "steelblue",
   },
   footer: {

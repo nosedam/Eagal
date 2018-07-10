@@ -4,6 +4,8 @@ import {
   StyleSheet,
   Text,
   View,
+  ActivityIndicator,
+  ToastAndroid
 } from "react-native";
 
 export default class Ubicacion extends Component {
@@ -11,35 +13,43 @@ export default class Ubicacion extends Component {
     super(props);
     this.state = {
       latitud: 0,
-      longitud: 0
-    };
+      longitud: 0,
+      textoUbicacion: "-",
+      cargandoUbicacion: true
+    };   
 
-   
+    setInterval(() => {
+      this.init();
+    }, 60000);
   }
 
   componentWillMount(){
+    this.init();
+  }
+
+  init (){
     navigator.geolocation.getCurrentPosition(      
       (position) => {
+        //console.warn("lat: " + position.coords.latitude + " / long: "+ position.coords.longitude);
         this.setState({
           latitud: position.coords.latitude,
           longitud: position.coords.longitude,
         });
+        this.setState({cargandoUbicacio: true}),
         this.setUbicacionAsync();
         this.getGoogleAddres();
     });
-
-
   }
 
   render() {
-
-
-    return (null);
-      /*<View>
-        <Text>{this.state.latitud}</Text>
-        <Text>{this.state.longitud}</Text>
+    return (
+      <View>
+        <View style={styles.containerUbicacion} >
+          <ActivityIndicator size="small" color="steelblue" animating={this.state.cargandoUbicacion}/>
+          { !this.state.cargandoUbicacion && <Text style={styles.textUbicacion}>{this.state.textoUbicacion}</Text> }
+        </View>
       </View>
-    );*/
+    );
   }
 
   setUbicacionAsync= async () =>  {
@@ -63,7 +73,8 @@ export default class Ubicacion extends Component {
   }
 
   getGoogleAddres = async() => {
-    fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng=-34.6752817,-58.5656971&language=es&result_type=street_address&key=AIzaSyB4QwE0ZN6_hFTNMpRlH42DaYtnR28q9Bg', {
+    //console.warn('https://maps.googleapis.com/maps/api/geocode/json?latlng=' + this.state.latitud + ',' + this.state.longitud +'&language=es&result_type=street_address&key=AIzaSyB4QwE0ZN6_hFTNMpRlH42DaYtnR28q9Bg');
+    fetch('https://maps.googleapis.com/maps/api/geocode/json?latlng=' + this.state.latitud + ',' + this.state.longitud +'&language=es&result_type=street_address&key=AIzaSyB4QwE0ZN6_hFTNMpRlH42DaYtnR28q9Bg', {
       method: 'GET',
       headers: {
         Accept: 'application/json'
@@ -71,15 +82,13 @@ export default class Ubicacion extends Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-        console.warn(responseJson.results[0].formatted_address);
+        //console.warn(responseJson.results);
+        this.setState({ textoUbicacion: responseJson.results[0].formatted_address, cargandoUbicacion: false});
     })
     .catch((error) => {
       console.error(error);
     });
   }
-
-  
-
 }
 
 const styles = StyleSheet.create({
@@ -95,20 +104,14 @@ const styles = StyleSheet.create({
     marginTop:15
   },
 
-  containerTemp: {
+  containerUbicacion: {
     justifyContent: "center",
     alignItems: "center",
 
   },
-  textTemp: {
-    borderColor: "black",
-    borderStyle: "solid",
-    borderRadius: 10,
-    borderWidth: 1,
-    fontSize: 60,
+  textUbicacion: {
+    fontSize: 11,    
     textAlign: 'center',
-    width:160,
-    
-    
+    width:400,       
   }
 });

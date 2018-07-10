@@ -31,7 +31,7 @@ export default class Humedad extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.containerHumedad} >
-          <ActivityIndicator size="large" color="#0000ff" animating={this.state.cargandoHumedad}/>
+          <ActivityIndicator size="large" color="steelblue" animating={this.state.cargandoHumedad}/>
           { !this.state.cargandoHumedad && <Text style={styles.textHum}>{this.state.textoHumedad}</Text> }
         </View>
         <TouchableOpacity style={styles.button} onPress={this.loadHumedadAsync}>
@@ -69,8 +69,8 @@ const styles = StyleSheet.create({
   button: {
     alignItems: "center",
     backgroundColor: "honeydew",
-    padding: 10,
-    marginTop:15
+    padding: 5,
+    marginTop:8
   },
 
   containerHumedad: {

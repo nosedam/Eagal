@@ -57,12 +57,10 @@ export default class Alarma extends Component {
   }
 
   render() {
-
-
     return (
       <View style={styles.container}>
         <View style={styles.containerAlarma}>
-          <ActivityIndicator size="large" color="#0000ff" animating={this.state.cargandoAlarma}/>
+          <ActivityIndicator size="large" color="steelblue" animating={this.state.cargandoAlarma}/>
           {!this.state.cargandoAlarma && 
             <Text style={[styles.textAlarma, !this.state.alarmaActiva && styles.alarmaDesactivada, this.state.sonando && styles.alarmaSonando]}>
               {this.state.horaAlarma}
@@ -220,26 +218,24 @@ export default class Alarma extends Component {
 
 }
 
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 100
+    paddingHorizontal: 100,
+    borderBottomColor:'grey',
+    borderBottomWidth:0.3,
+    paddingBottom:25
   },
   button: {
     alignItems: "center",
     backgroundColor: "honeydew",
-    padding: 10,
-    marginTop:15
+    padding: 5,
+    marginTop:8
   },
-
   containerAlarma: {
-
     justifyContent: "center",
     alignItems: "center"
-
   },
   textAlarma: {
     fontSize: 59,
