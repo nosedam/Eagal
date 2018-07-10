@@ -166,7 +166,6 @@ export default class Alarma extends Component {
     this.setState({ cargandoAlarma: true}); 
     var boolActiva = !this.state.alarmaActiva;
     var toggle = boolActiva ? "1" : "0";
-    console.warn(intToggle);
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/toggleAlarma?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'POST',
       headers: {

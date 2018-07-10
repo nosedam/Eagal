@@ -54,7 +54,7 @@ export default class Brillo extends Component {
       this.setState({eagalLightlight: brilloEagal});
 
       //console.warn("Sumadora: " + sumadora + " - Brillo android:" + promedio + " - Brillo calculado:" + brilloEagal);
-      //ToastAndroid.show("Sumadora: " + sumadora + " - Brillo android:" + promedio + " - Brillo calculado:" + brilloEagal, 1800);
+      ToastAndroid.show("Sumadora: " + sumadora + " - Brillo android:" + promedio + " - Brillo calculado:" + brilloEagal, 1800);
       
       counter = 0;
       lights = [0];
