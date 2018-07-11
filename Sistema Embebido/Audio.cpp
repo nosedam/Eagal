@@ -24,3 +24,7 @@ void Audio::setCancion(const int c){
 void Audio::reiniciar(){
     pos = 0;
 }
+
+int Audio::getPin(){
+    return pin;
+}

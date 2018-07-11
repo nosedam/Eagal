@@ -1,5 +1,5 @@
 #include "application.h"
-#include "Pantalla.h""
+#include "Pantalla.h"
 
 void Pantalla::enviarComando(const String comando, const String valor){
     Serial1.print(comando);
@@ -32,4 +32,8 @@ void Pantalla::setTexto(const String objeto, const String valor){
 
 void Pantalla::setBrillo(const String valor){
     enviarComando("dim="+valor);
+}
+
+void Pantalla::setColorReloj(const String color){
+    enviarComando("preloj.reloj.bco="+color);
 }
