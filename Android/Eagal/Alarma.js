@@ -28,7 +28,7 @@ export default class Alarma extends Component {
 
     setInterval(() => {
       this.loadAlarmaSonandoAsync();
-    }, 5000);
+    }, 3000);
   }
 
   timePicker = async () => {
@@ -85,9 +85,9 @@ export default class Alarma extends Component {
           selectedValue={this.state.cancion}
           style={styles.ddlCancion}
           onValueChange={(itemValue, itemIndex) => this.changeCancion(itemValue)}>
-          <Picker.Item label="Canción 1" value="0" />
-          <Picker.Item label="Canción 2" value="1" />
-          <Picker.Item label="Canción 3" value="2" />
+          <Picker.Item label="Piratas del Caribe" value="0" />
+          <Picker.Item label="Yellow Submarine" value="1" />
+          <Picker.Item label="Game of Thrones" value="2" />
         </Picker>
       </View>
       </View>
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   ddlCancion:{ 
     height: 50, 
-    width: 160,
+    width: 190,
     borderColor: "black",
     borderStyle: "solid",
     borderRadius: 1,

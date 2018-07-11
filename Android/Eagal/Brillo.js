@@ -14,7 +14,7 @@ import { SensorManager } from 'NativeModules';
 var lights = [0] ;
 var counter = 0;
 const MAX_LIGHT = 1000;
-const MAX_COUNT = 20;
+const MAX_COUNT = 10;
 
 export default class Brillo extends Component {
   constructor(props) {
@@ -145,7 +145,7 @@ export default class Brillo extends Component {
   }
   
   setBrilloAsync= async () =>  {
-    console.warn("Le vamos a mandar a eagal: " + this.state.eagalLight.toString());
+    //console.warn("Le vamos a mandar a eagal: " + this.state.eagalLight.toString());
     //Primero setteo el brillo
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/setBrillo?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'POST',
