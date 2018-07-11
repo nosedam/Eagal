@@ -63,18 +63,28 @@ export default class Temperatura extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 100,
+    flex: 1.5,
     borderBottomColor:'grey',
     borderBottomWidth:0.3,
-    paddingBottom:5,
+    marginTop:9,
+    alignItems: "center",
   },
   button: {
-    alignItems: "center",
-    backgroundColor: "honeydew",
+    backgroundColor: "#ff6666",
     padding: 5,
-    marginTop:8
+    width: 160,
+    alignItems: "center",
+    marginTop:8,
+    marginBottom:8,
+    borderColor: "transparent",
+    borderWidth: 0,
+    borderRadius: 5,   
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation : 1 
   },
 
   containerTemp: {

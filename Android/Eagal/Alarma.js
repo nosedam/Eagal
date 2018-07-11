@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   TimePickerAndroid,
   ActivityIndicator,
-  ToastAndroid
+  ToastAndroid,
+  Picker
 } from "react-native";
 
 import RNShakeEvent from 'react-native-shake-event';
@@ -21,7 +22,8 @@ export default class Alarma extends Component {
       hora: 22,
       miuntos: 30,
       alarmaActiva: true,
-      sonando: false
+      sonando: false,
+      cancion: "0"
     };
 
     setInterval(() => {
@@ -48,6 +50,7 @@ export default class Alarma extends Component {
   };
 
   componentWillMount(){
+    this.loadCancionAsync();
     this.loadAlarmaAsync();
     this.loadAlarmaActivaAsync();
     RNShakeEvent.addEventListener('shake', () => {
@@ -58,6 +61,7 @@ export default class Alarma extends Component {
 
   render() {
     return (
+      <View style={styles.containerGral}>
       <View style={styles.container}>
         <View style={styles.containerAlarma}>
           <ActivityIndicator size="large" color="steelblue" animating={this.state.cargandoAlarma}/>
@@ -74,9 +78,60 @@ export default class Alarma extends Component {
           {!this.state.alarmaActiva && <Text>Activar alarma</Text>}
           {this.state.alarmaActiva && <Text>Desactivar alarma</Text>}
         </TouchableOpacity>
-        <Text>{this.state.respuesta}</Text>
+      </View>
+      <View style={{flex:0.5, alignItems: "center"}}>
+        <Text style={{fontSize:20}}>Tonos de alarma</Text>
+        <Picker
+          selectedValue={this.state.cancion}
+          style={styles.ddlCancion}
+          onValueChange={(itemValue, itemIndex) => this.changeCancion(itemValue)}>
+          <Picker.Item label="Canción 1" value="0" />
+          <Picker.Item label="Canción 2" value="1" />
+          <Picker.Item label="Canción 3" value="2" />
+        </Picker>
+      </View>
       </View>
     );
+  }
+
+  loadCancionAsync= async () =>  {
+    this.setState({ cargandoAlarma: true});
+    fetch('https://api.particle.io/v1/devices/300037000347353137323334/cancion?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json'
+      }    
+    })
+    .then((response) => response.json())
+    .then((responseJson) => {
+      this.setState({ cancion: responseJson.result.toString() });
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+
+  changeCancion = async (cancion) => {
+    //console.warn("cancion: " + cancion);
+    this.setState({cancion: cancion.toString()});    
+    
+    fetch('https://api.particle.io/v1/devices/300037000347353137323334/setCancion?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        arg: cancion.toString()
+      }) 
+    })
+    .then((response) => response.json())
+    .then((responseJson) => {
+      ToastAndroid.show("Tono de alarma configurado correctamente" , ToastAndroid.SHORT);  
+    })
+    .catch((error) => {
+      console.error(error);
+    });
   }
 
   setAlarmaAsync() {
@@ -160,7 +215,6 @@ export default class Alarma extends Component {
     });
   }
 
-
   toggleAlarmaAsync = async () =>  {
 
     this.setState({ cargandoAlarma: true}); 
@@ -184,8 +238,7 @@ export default class Alarma extends Component {
       ToastAndroid.show("Ocurrio un error actualizando la alarma" , ToastAndroid.SHORT);
       console.error(error);
     });
-  }  
-
+  }
 
   apagarAlarmaAsync = async () =>  {
 
@@ -218,23 +271,40 @@ export default class Alarma extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 100,
+  containerGral: {
+    flex: 2.5,
     borderBottomColor:'grey',
     borderBottomWidth:0.3,
     paddingBottom:25
   },
+  container: {
+    flex: 2,
+    justifyContent: "center",
+    paddingHorizontal: 100,
+    paddingBottom:10
+  },
   button: {
-    alignItems: "center",
     backgroundColor: "honeydew",
     padding: 5,
-    marginTop:8
+    width: 160,
+    alignItems: "center",
+    marginTop:8,
+    marginBottom:8,
+    borderColor: "transparent",
+    borderWidth: 0,
+    borderRadius: 5,  
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation : 1
   },
   containerAlarma: {
+    flex:1.5,
+    marginBottom:8,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   textAlarma: {
     fontSize: 59,
@@ -250,5 +320,13 @@ const styles = StyleSheet.create({
   },
   alarmaSonando: {
     color: "red"
+  },
+  ddlCancion:{ 
+    height: 50, 
+    width: 160,
+    borderColor: "black",
+    borderStyle: "solid",
+    borderRadius: 1,
+    borderWidth: 1,  
   }
 });

@@ -62,15 +62,30 @@ export default class Humedad extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 100
+    flex: 1.5,
+    borderLeftColor:'grey',
+    borderLeftWidth:0.3,
+    alignItems: "center",
+    borderBottomColor:'grey',
+    borderBottomWidth:0.3,
+    marginTop:9
   },
   button: {
-    alignItems: "center",
-    backgroundColor: "honeydew",
+    backgroundColor: "#ff6666",
     padding: 5,
-    marginTop:8
+    width: 160,
+    alignItems: "center",
+    marginTop:8,
+    marginBottom:8,
+    borderColor: "transparent",
+    borderWidth: 0,
+    borderRadius: 5,  
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation : 1
   },
 
   containerHumedad: {

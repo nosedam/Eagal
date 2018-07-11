@@ -24,8 +24,12 @@ export default class App extends Component<Props> {
         </View>
         <View style={{flex: 4, backgroundColor: 'skyblue', paddingTop: 3}}>
           <Alarma/>
-          <Temperatura/>
-          <Humedad/>
+            <View style={{flex:1.5, flexDirection:'column', justifyContent:'center'}}>
+              <View style={{flexDirection:'row'}}>
+                <Temperatura/>
+                <Humedad/>
+            </View>
+          </View>
           <Brillo/>
         </View>
         <View style={{flex: 0.5, backgroundColor: 'steelblue', justifyContent: 'center', height: 10,borderTopColor:'black',borderTopWidth:1}}>
