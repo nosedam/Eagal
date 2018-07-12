@@ -9,46 +9,62 @@ import {
   CheckBox
 } from "react-native";
 
+//Componente que utilizamos para definir los listeners y handlers de los sensores. En este caso al de Luz
 import { SensorManager } from 'NativeModules';
 
-var lights = [0] ;
-var counter = 0;
-const MAX_LIGHT = 1000;
-const MAX_COUNT = 10;
+
+var lights = [0]; //Array para almacenar las lecturas del sensor de luz
+var counter = 0; //Contador
+const MAX_LIGHT = 600; //Rango máximo de luz para reducir los valores posibles ya que el sensor lee hasta 30000 en condiciones mas extremas.
+const MAX_COUNT = 7;//Conteo de lecturas para calcular valor a enviar al embebido
 
 export default class Brillo extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      light: 0,
-      eagalLight: 0,
-      checked: false,
-      avisamos: false
+      light: 0, //Valor de luz leido
+      eagalLight: 0, //Valor calculado que se le envia al embebido
+      checked: false, //Establece si lee los valores del sensor del celular o del embebido
+      avisamos: false, //Flag para determinar si se envia la luz o no
+      loadingCheck: false
     };   
   }
-  componentDidMount(){
+
+  //Antes del render del componente, consultamos si esta configurado para usar el sensor del celular o del embebido
+  componentWillMount(){
     this.loadCheckedAsync();
-    SensorManager.startLightSensor(80);
+  }
+
+  //Una vez que se montó el componente, empezamos a detectar las lecturas del sensor de luz y configuramos el handler
+  componentDidMount(){
+    
+    SensorManager.startLightSensor(100);
     DeviceEventEmitter.addListener('LightSensor', 
           (data) => this.refresh(data)
     );
   }
 
+  //Muestra el checkbox en pantalla
   render() {
     //console.warn("render: " + this.state.checked);
     return (
       <View style={styles.container}>
-      <CheckBox
-        value={this.state.checked}
-        onValueChange={this.changeChecked}
-        checkedColor='red'
-      />
-      <Text style={styles.text}>Actualizar brillo en Eagal</Text>
-    </View>
+        <CheckBox
+          value={this.state.checked}
+          onValueChange={this.changeChecked}
+          checkedColor='red'
+        />
+        <Text style={styles.text}>Actualizar brillo en Eagal</Text>
+      </View>
     );
   }
 
+  //Handler de lectura del sensor. Actualiza el array y realiza los calculos correspondientes.
+  //Al obtener la cantidad de lecturas definidas, se calcula el promedio y se define un valor entre 0 y 100 relativo
+  //para enviar al embebido y actualizar el brillo de la pantalla
   refresh(data){
+    if (this.state.loadingCheck) return;
+
     this.setState({light: data.light});
     lights.push(data.light);
     counter = counter + 1;
@@ -84,15 +100,14 @@ export default class Brillo extends Component {
     }
   }
 
+  //Actualiza el estado segun se modifique el checkbox
   changeChecked = async () => {
-    //console.warn("1 changeChecked: this.state.checked: " + this.state.checked);
     
     if(this.state.checked)
       this.state.checked = false;
     else
       this.state.checked = true;
 
-    //console.warn("2 changeChecked: this.state.checked: " + this.state.checked);
     var s_state = "0";
     if(this.state.checked){
       ToastAndroid.show("Se activó la actualización de brillo en Eagal a partir del sensor del celular", ToastAndroid.SHORT);
@@ -104,8 +119,9 @@ export default class Brillo extends Component {
     this.setToggleBrilloAsync(s_state);
   }
 
-  
+  //Carga el valor configurado en el embebido para actualizar el checkbox
   loadCheckedAsync= async () =>  {
+    this.setState({loadingCheck: true});
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/brilloLDR?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'GET',
       headers: {
@@ -115,13 +131,15 @@ export default class Brillo extends Component {
     .then((response) => response.json())
     .then((responseJson) => {
       //console.warn(responseJson);
-      this.setState({ checked: responseJson.result != 1 });
+      this.setState({ checked: responseJson.result != 1, loadingCheck: false });
     })
     .catch((error) => {
       console.error(error);
     });
   }
 
+  //Envia al embebido el valor del checkbox, para que sepa si tiene que procesar las lecturas de su sensor o esperar
+  //los valores que recibe de la aplicacion
   setToggleBrilloAsync= async (s_state) =>  {
     //console.warn("s_state: " + s_state);
 
@@ -144,8 +162,8 @@ export default class Brillo extends Component {
     });
   }
   
+  //Envia al embebido el valor de brillo calculado segun las lecturas tomadas
   setBrilloAsync= async () =>  {
-    //console.warn("Le vamos a mandar a eagal: " + this.state.eagalLight.toString());
     //Primero setteo el brillo
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/setBrillo?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'POST',
@@ -165,12 +183,14 @@ export default class Brillo extends Component {
       console.error(error);
     });
   }
-  
+
+  //Dejamos de capturar las lecturas del sensor de luz
   componentWillUnmount(){
     SensorManager.stopLightSensor();
   }
 }  
 
+//Estilo
 const styles = StyleSheet.create({
   container: {
     flex: 0.5,

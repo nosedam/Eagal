@@ -8,6 +8,7 @@ import {
   ActivityIndicator
 } from "react-native";
 
+//Componente para mostrar en pantalla el valor sensado de temperatura que se obtiene desde el embebido
 export default class Temperatura extends Component {
   constructor(props) {
     super(props);
@@ -17,15 +18,18 @@ export default class Temperatura extends Component {
       cargandoTemp: false
     };
 
+    //Cada 60k ms actualizamos el valor de la temperatura
     setInterval(() => {
       this.loadTemperaturaAsync();
     }, 60000);
   }
 
+  //Al cargar por primera vez, obtenemos el valor desde el embebido
   componentWillMount(){
     this.loadTemperaturaAsync();
   }
-
+  
+  //Muestra la temperatura en grados celsius en pantalla
   render() {
 
 
@@ -42,6 +46,7 @@ export default class Temperatura extends Component {
     );
   }
 
+  //Obtiene el valor de la temperatura desde el embebido a través de la API
   loadTemperaturaAsync= async () =>  {
     this.setState({ cargandoTemp: true});
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/temperatura?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
@@ -61,6 +66,7 @@ export default class Temperatura extends Component {
 
 }
 
+//Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1.5,

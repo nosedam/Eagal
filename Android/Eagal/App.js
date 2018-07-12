@@ -6,6 +6,7 @@ import {
   View
 } from 'react-native';
 
+//Importamos todos los componentes definidos por nosotros para mostrar en pantalla.
 import Alarma from './Alarma';
 import Temperatura from './Temperatura';
 import Humedad from './Humedad';
@@ -15,6 +16,8 @@ import Brillo from './Brillo';
 
 type Props = {};
 
+//Componente principal. Renderiza todos los componentes devueltos por la funcion render(). Aca organizamos la interfaz
+//mostrando los componentes con la disposicion definida y les aplicamos el estilo.
 export default class App extends Component<Props> {
   render() {
     return (
@@ -45,6 +48,7 @@ class Input extends Component{
   
 }
 
+//Estilos 
 const styles = StyleSheet.create({
   container: {
     flex: 1,

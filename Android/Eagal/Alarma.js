@@ -4,33 +4,39 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
+  TouchableOpacity, 
   TimePickerAndroid,
   ActivityIndicator,
   ToastAndroid,
   Picker
 } from "react-native";
 
+//Componente para detectar evento de "shake", utilizando el acelerometro.
 import RNShakeEvent from 'react-native-shake-event';
 
+//Caracteristica principal de la aplicación. En este componente definimos todas las funciones para
+//configurar la alarma y detectar los eventos y estados que esta produzca.
 export default class Alarma extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      horaAlarma: "22:30",
-      cargandoAlarma: false,
+      horaAlarma: "22:30", //horario en el que sonara la alarma. configurable desde la app y se almacena en la EEPROM del embebido
+      cargandoAlarma: false, //detecta que se esta comunicando con la nube para mostrar gif de cargando
       hora: 22,
       miuntos: 30,
-      alarmaActiva: true,
-      sonando: false,
-      cancion: "0"
+      alarmaActiva: true, //estado de la alarma, indica si va a sonar o no cuando llegue la hora configurada
+      sonando: false, //indica si la alarma se encuentra sonando o no para captar y enviar el shake de apagado
+      cancion: "0" //numero de cancion configurada, va de 0 a 2
     };
 
+    //Cada 3000ms, consulta al dispositivo si la alarma se encuentra sonando para indicarlo en pantalla
     setInterval(() => {
       this.loadAlarmaSonandoAsync();
     }, 3000);
   }
 
+  //Handler del componente timePicker. Muestra en pantalla el reloj configurable para setear la alarma
+  //Al terminar, envia la hora seleccionada al embebido y este la procesa y almacena.
   timePicker = async () => {
     try {
       const { action, hour, minute } = await TimePickerAndroid.open({
@@ -45,10 +51,13 @@ export default class Alarma extends Component {
         this.setAlarmaAsync();
       }
     } catch ({ code, message }) {
-      console.warn("Cannot open time picker", message);
+      console.warn("Error abriendo time picker", message);
     }
   };
 
+  //Evento nativo de react que se ejecuta antes del render, invocamos todas las funciones
+  //que obtienen las distintas variables y estados del embebido.
+  //Tambien inicializamos el listener para detectar el shake.
   componentWillMount(){
     this.loadCancionAsync();
     this.loadAlarmaAsync();
@@ -62,38 +71,39 @@ export default class Alarma extends Component {
   render() {
     return (
       <View style={styles.containerGral}>
-      <View style={styles.container}>
-        <View style={styles.containerAlarma}>
-          <ActivityIndicator size="large" color="steelblue" animating={this.state.cargandoAlarma}/>
-          {!this.state.cargandoAlarma && 
-            <Text style={[styles.textAlarma, !this.state.alarmaActiva && styles.alarmaDesactivada, this.state.sonando && styles.alarmaSonando]}>
-              {this.state.horaAlarma}
-            </Text> 
-          }
+        <View style={styles.container}>
+          <View style={styles.containerAlarma}>
+            <ActivityIndicator size="large" color="steelblue" animating={this.state.cargandoAlarma}/>
+            {!this.state.cargandoAlarma && 
+              <Text style={[styles.textAlarma, !this.state.alarmaActiva && styles.alarmaDesactivada, this.state.sonando && styles.alarmaSonando]}>
+                {this.state.horaAlarma}
+              </Text> 
+            }
+          </View>
+          <TouchableOpacity style={styles.button} onPress={this.timePicker}>
+            <Text>Configurar alarma</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={this.toggleAlarmaAsync}>
+            {!this.state.alarmaActiva && <Text>Activar alarma</Text>}
+            {this.state.alarmaActiva && <Text>Desactivar alarma</Text>}
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.button} onPress={this.timePicker}>
-          <Text>Configurar alarma</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={this.toggleAlarmaAsync}>
-          {!this.state.alarmaActiva && <Text>Activar alarma</Text>}
-          {this.state.alarmaActiva && <Text>Desactivar alarma</Text>}
-        </TouchableOpacity>
-      </View>
-      <View style={{flex:0.5, alignItems: "center"}}>
-        <Text style={{fontSize:20}}>Tonos de alarma</Text>
-        <Picker
-          selectedValue={this.state.cancion}
-          style={styles.ddlCancion}
-          onValueChange={(itemValue, itemIndex) => this.changeCancion(itemValue)}>
-          <Picker.Item label="Piratas del Caribe" value="0" />
-          <Picker.Item label="Yellow Submarine" value="1" />
-          <Picker.Item label="Game of Thrones" value="2" />
-        </Picker>
-      </View>
+        <View style={{flex:0.5, alignItems: "center"}}>
+          <Text style={{fontSize:20}}>Tonos de alarma</Text>
+          <Picker
+            selectedValue={this.state.cancion}
+            style={styles.ddlCancion}
+            onValueChange={(itemValue, itemIndex) => this.changeCancion(itemValue)}>
+            <Picker.Item label="Piratas del Caribe" value="0" />
+            <Picker.Item label="Yellow Submarine" value="1" />
+            <Picker.Item label="Game of Thrones" value="2" />
+          </Picker>
+        </View>
       </View>
     );
   }
 
+  //Obtiene la cancion configurada en el embebido y la muestra en pantalla.
   loadCancionAsync= async () =>  {
     this.setState({ cargandoAlarma: true});
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/cancion?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
@@ -111,8 +121,9 @@ export default class Alarma extends Component {
     });
   }
 
+  //Al seleccionar una cancion, envía al embebido la nueva seleccionada.
   changeCancion = async (cancion) => {
-    //console.warn("cancion: " + cancion);
+
     this.setState({cancion: cancion.toString()});    
     
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/setCancion?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
@@ -134,6 +145,7 @@ export default class Alarma extends Component {
     });
   }
 
+  //Envia la hora seleccionada en el picker al embebido.
   setAlarmaAsync() {
 
     this.setState({ cargandoAlarma: true}); 
@@ -149,7 +161,6 @@ export default class Alarma extends Component {
       })      
     })
     .then((responseJson) => {
-      /*this.setState({ respuesta: JSON.stringify(responseJson.return_value)});*/
       var returnValue = responseJson.return_value;
       this.setState({cargandoAlarma: false});
       ToastAndroid.show("Alarma configurada correctamente" , ToastAndroid.SHORT);      
@@ -160,6 +171,7 @@ export default class Alarma extends Component {
     });
   }
 
+  //Carga la hora configurada para la alarma que esté actualmente en el embebido y la actualiza en pantalla.
   loadAlarmaAsync= async () =>  {
     this.setState({ cargandoAlarma: true});
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/horaalarma?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
@@ -181,6 +193,7 @@ export default class Alarma extends Component {
     });
   }
 
+  //Obtiene el estado activo de la alarma para saber si sonará o no cuando llegue la hora y cambia el color del fondo del texto segun su valor
   loadAlarmaActivaAsync= async () =>  {
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/alarmaActiva?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
       method: 'GET',
@@ -197,6 +210,7 @@ export default class Alarma extends Component {
     });
   }
 
+  //Obtiene si la alarma se encuentra sonando y actualiza en pantalla el color del texto segun su valor
   loadAlarmaSonandoAsync= async () =>  {
     if (this.state.sonando) return;
 
@@ -215,6 +229,7 @@ export default class Alarma extends Component {
     });
   }
 
+  //Activa o desactiva la alarma y envía este valor al embebido.
   toggleAlarmaAsync = async () =>  {
 
     this.setState({ cargandoAlarma: true}); 
@@ -240,6 +255,7 @@ export default class Alarma extends Component {
     });
   }
 
+  //Si la alarma esta sonando y se dtecta un shake, se envia al embebido la informacion de apagado.
   apagarAlarmaAsync = async () =>  {
 
     this.setState({ cargandoAlarma: true}); 
@@ -264,12 +280,14 @@ export default class Alarma extends Component {
     });
   }  
 
+  //Al desmontar el componente, dejamos de suscribir al listener del shake
   componentWillUnmount() {
     RNShakeEvent.removeEventListener('shake');
   }
 
 }
 
+//Estilos
 const styles = StyleSheet.create({
   containerGral: {
     flex: 2.5,

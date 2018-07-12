@@ -8,6 +8,7 @@ import {
   ActivityIndicator
 } from "react-native";
 
+//Componente para mostrar en pantalla el valor sensado de humedad que se obtiene desde el embebido
 export default class Humedad extends Component {
   constructor(props) {
     super(props);
@@ -16,15 +17,18 @@ export default class Humedad extends Component {
       cargandoHumedad: false
     };
 
+    //Cada 60k ms actualizamos el valor de la humedad
     setInterval(() => {
       this.loadHumedadAsync();
     }, 60000);
   }
 
+  //Al cargar por primera vez, obtenemos el valor desde el embebido
   componentWillMount(){
     this.loadHumedadAsync();
   }
 
+  //Muestra la humedad en porcentaje en pantalla
   render() {
 
 
@@ -41,6 +45,7 @@ export default class Humedad extends Component {
     );
   }
 
+  //Obtiene el valor de la humedad desde el embebido a través de la API
   loadHumedadAsync= async () =>  {
     this.setState({ cargandoHumedad: true});
     fetch('https://api.particle.io/v1/devices/300037000347353137323334/humedad?access_token=19b2e3af727c4ad7b245755bce7fadb84ac44d74', {
@@ -60,6 +65,7 @@ export default class Humedad extends Component {
 
 }
 
+//Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1.5,
